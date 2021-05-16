@@ -1,0 +1,23 @@
+#!/usr/bin/with-contenv sh
+
+# Enable opcache for production
+if [ "$APP_ENV" == "production" ]; then
+  mv /usr/local/etc/php/opcache_disabled.ini /usr/local/etc/php/opcache.ini
+  echo "Enabling PHP-FPM's opcache for production";
+else
+  echo "PHP-FPM's opcache is NOT enabled";
+fi
+
+# Enable xdebug if XDEBUG_ENABLE=true
+if [ "$XDEBUG_ENABLE" == "true" ]; then
+  if [ -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini.disabled ]; then
+    echo "Enabling PHP-FPM's xdebug";
+    mv /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini.disabled /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+  else
+    echo "Xdebug is not installed on the container";
+  fi
+fi
+
+su www-data
+
+exec /usr/local/sbin/php-fpm --nodaemonize
