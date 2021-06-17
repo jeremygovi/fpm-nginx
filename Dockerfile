@@ -37,6 +37,11 @@ RUN docker-php-ext-install \
 
 RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 
+# Fix some php limits
+RUN echo 'memory_limit = -1' >> /usr/local/etc/php/conf.d/docker-php-memlimit.ini
+RUN echo "max_execution_time=900" >> /usr/local/etc/php/conf.d/docker-php-max_execution_time.ini
+RUN sed -i s/'max_execution_time = 30'/'max_execution_time = 300'/g /usr/local/etc/php/php.ini*
+
 # ------------------------ add nginx ------------------------
 # Taken from official nginx container Dockerfile
 
@@ -142,6 +147,9 @@ RUN set -x \
     # forward request and error logs to docker log collector
     && ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log
+
+# Use www-data user instead of nginx
+RUN sed -i s/'user  nginx'/'user  www-data'/g /etc/nginx/nginx.conf
 
 # ------------------------ add s6 ------------------------
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.1.0.2/s6-overlay-amd64-installer /tmp/
